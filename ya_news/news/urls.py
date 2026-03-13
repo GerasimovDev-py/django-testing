@@ -1,16 +1,11 @@
 from django.urls import path
-
-from news import views
+from . import views
 
 app_name = 'news'
 
 urlpatterns = [
     path('', views.NewsList.as_view(), name='home'),
-    path('news/<int:pk>/', views.NewsDetailView.as_view(), name='detail'),
-    path(
-        'delete_comment/<int:pk>/',
-        views.CommentDelete.as_view(),
-        name='delete'
-    ),
-    path('edit_comment/<int:pk>/', views.CommentUpdate.as_view(), name='edit'),
+    path('<int:pk>/', views.NewsDetail.as_view(), name='detail'),
+    path('comment/<int:pk>/edit/', views.CommentEdit.as_view(), name='edit'),
+    path('comment/<int:pk>/delete/', views.CommentDelete.as_view(), name='delete'),
 ]

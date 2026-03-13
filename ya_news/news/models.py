@@ -1,18 +1,22 @@
+from django.db import models
+from django.contrib.auth import get_user_model
 from datetime import datetime
 
-from django.conf import settings
-from django.db import models
+User = get_user_model()
 
 
 class News(models.Model):
-    title = models.CharField(max_length=50)
-    text = models.TextField()
-    date = models.DateField(default=datetime.today)
+    title = models.CharField(max_length=200, verbose_name='Заголовок')
+    text = models.TextField(verbose_name='Текст')
+    date = models.DateField(
+        default=datetime.today,
+        verbose_name='Дата'
+    )
 
     class Meta:
         ordering = ('-date',)
-        verbose_name_plural = 'Новости'
         verbose_name = 'Новость'
+        verbose_name_plural = 'Новости'
 
     def __str__(self):
         return self.title
@@ -21,17 +25,29 @@ class News(models.Model):
 class Comment(models.Model):
     news = models.ForeignKey(
         News,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Новость'
     )
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор'
     )
-    text = models.TextField()
-    created = models.DateTimeField(auto_now_add=True)
+    text = models.TextField(verbose_name='Текст комментария')
+    created = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата и время'
+    )
 
     class Meta:
         ordering = ('created',)
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
-        return self.text[:50]
+        return (
+            f'Комментарий от {self.author} '
+            f'к новости {self.news}'
+        )
