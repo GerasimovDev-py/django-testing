@@ -23,12 +23,6 @@ class TestRoutes(TestCase):
         )
 
     def test_pages_availability_for_anonymous_user(self):
-        """
-        Проверка доступности страниц анонимному пользователю.
-        Главная страница доступна анонимному пользователю.
-        Страницы регистрации, входа и выхода доступны всем пользователям.
-        """
-        # Страницы, доступные через GET запрос
         urls = (
             ('notes:home', None),
             ('users:login', None),
@@ -39,20 +33,15 @@ class TestRoutes(TestCase):
                 url = reverse(name, args=args)
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
-        
+
         logout_url = reverse('users:logout')
         response = self.client.get(logout_url)
         self.assertEqual(response.status_code, HTTPStatus.METHOD_NOT_ALLOWED)
+
         response = self.client.post(logout_url)
         self.assertIn(response.status_code, [HTTPStatus.OK, HTTPStatus.FOUND])
 
     def test_pages_availability_for_auth_user(self):
-        """
-        Аутентифицированному пользователю доступны:
-        - страница со списком заметок notes/
-        - страница успешного добавления заметки done/
-        - страница добавления новой заметки add/
-        """
         self.client.force_login(self.author)
         urls = (
             ('notes:list', None),
@@ -66,10 +55,6 @@ class TestRoutes(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_availability_for_note_author(self):
-        """
-        Страницы отдельной заметки, удаления и редактирования заметки 
-        доступны только автору заметки.
-        """
         self.client.force_login(self.author)
         urls = (
             ('notes:detail', (self.note.slug,)),
@@ -83,10 +68,6 @@ class TestRoutes(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_availability_for_another_user(self):
-        """
-        Если на страницы отдельной заметки, удаления и редактирования заметки
-        попытается зайти другой пользователь — вернётся ошибка 404.
-        """
         self.client.force_login(self.reader)
         urls = (
             ('notes:detail', (self.note.slug,)),
@@ -100,10 +81,6 @@ class TestRoutes(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_redirect_for_anonymous_client(self):
-        """
-        При попытке перейти на страницы, требующие аутентификации,
-        анонимный пользователь перенаправляется на страницу логина.
-        """
         login_url = reverse('users:login')
         urls = (
             ('notes:list', None),

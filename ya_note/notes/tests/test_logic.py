@@ -54,11 +54,13 @@ class TestLogic(TestCase):
         url = reverse('notes:add')
         response = self.client.post(url, data=self.form_data)
         form = response.context['form']
-        self.assertFormError(form, 'slug', self.note.slug + WARNING)
+        self.assertFormError(
+            form, 'slug', self.note.slug + WARNING
+        )
         self.assertEqual(Note.objects.count(), 1)
 
     def test_empty_slug_auto_generated(self):
-        """Если при создании заметки не заполнен slug, он формируется автоматически."""
+        """Если slug не заполнен, он формируется автоматически."""
         self.form_data.pop('slug')
         self.client.force_login(self.author)
         url = reverse('notes:add')
