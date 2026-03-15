@@ -48,7 +48,9 @@ class TestLogic:
         form_data = {'text': new_text}
         response = author_client.post(url, data=form_data)
         assert response.status_code == 302
-        assert response.url == reverse('news:detail', args=(news.id,))
+        assert response.url == reverse(
+            'news:detail', args=(news.id,)
+        )
         comment.refresh_from_db()
         assert comment.text == new_text
 
@@ -57,7 +59,9 @@ class TestLogic:
         comments_before = Comment.objects.count()
         response = author_client.post(url)
         assert response.status_code == 302
-        assert response.url == reverse('news:detail', args=(news.id,))
+        assert response.url == reverse(
+            'news:detail', args=(news.id,)
+        )
         assert Comment.objects.count() == comments_before - 1
 
     def test_user_cant_edit_other_comment(self, not_author_client, comment):
