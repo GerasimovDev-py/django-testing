@@ -19,18 +19,18 @@ class TestLogic:
         assert response.url == redirect_url
         assert Comment.objects.count() == comments_before
 
-    def test_authorized_user_can_send_comment(self, author_client, news, author):
+    def test_anonymous_user_cant_send_comment(self, client, news):
         url = reverse('news:detail', args=(news.id,))
         comments_before = Comment.objects.count()
         form_data = {'text': 'Текст комментария'}
-        response = author_client.post(url, data=form_data)
+        response = client.post(url, data=form_data)
+        login_url = reverse('login')
+        redirect_url = (
+            f'{login_url}?next={url}'
+        )
         assert response.status_code == 302
-        assert response.url == url
-        assert Comment.objects.count() == comments_before + 1
-        new_comment = Comment.objects.latest('id')
-        assert new_comment.text == form_data['text']
-        assert new_comment.news == news
-        assert new_comment.author == author
+        assert response.url == redirect_url
+        assert Comment.objects.count() == comments_before
 
     def test_comment_with_bad_words_not_published(self, author_client, news):
         url = reverse('news:detail', args=(news.id,))
