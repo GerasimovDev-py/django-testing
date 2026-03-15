@@ -19,19 +19,21 @@ class TestLogic:
         )
         assert Comment.objects.count() == comments_before
 
-    def test_authorized_user_can_send_comment(self, author_client, news, author):
-        url = reverse('news:detail', args=(news.id,))
-        comments_before = Comment.objects.count()
-        form_data = {'text': 'Текст комментария'}
-        response = author_client.post(url, data=form_data)
-        assert response.status_code == 302
-        assert response.url == url
-        comments_after = Comment.objects.count()
-        assert comments_after == comments_before + 1
-        new_comment = Comment.objects.latest('id')
-        assert new_comment.text == form_data['text']
-        assert new_comment.news == news
-        assert new_comment.author == author
+    def test_authorized_user_can_send_comment(
+            self, author_client, news, author
+        ):
+            url = reverse('news:detail', args=(news.id,))
+            comments_before = Comment.objects.count()
+            form_data = {'text': 'Текст комментария'}
+            response = author_client.post(url, data=form_data)
+            assert response.status_code == 302
+            assert response.url == url
+            comments_after = Comment.objects.count()
+            assert comments_after == comments_before + 1
+            new_comment = Comment.objects.latest('id')
+            assert new_comment.text == form_data['text']
+            assert new_comment.news == news
+            assert new_comment.author == author
 
     def test_comment_with_bad_words_not_published(self, author_client, news):
         url = reverse('news:detail', args=(news.id,))
