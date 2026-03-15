@@ -1,6 +1,5 @@
 import pytest
 from django.conf import settings
-from django.urls import reverse
 
 from news.forms import CommentForm
 
@@ -21,8 +20,9 @@ class TestContent:
         sorted_dates = sorted(all_dates, reverse=True)
         assert all_dates == sorted_dates
 
-    def test_comments_order(self, client, news, comment_with_different_dates, detail_url):
-        response = client.get(detail_url)
+    def test_comments_order(self, client, news, comment_with_different_dates):
+        url = reverse('news:detail', args=(news.id,))
+        response = client.get(url)
         assert 'news' in response.context
         news_from_context = response.context['news']
         all_comments = news_from_context.comments.all()
@@ -30,11 +30,13 @@ class TestContent:
         sorted_timestamps = sorted(all_timestamps)
         assert all_timestamps == sorted_timestamps
 
-    def test_anonymous_client_has_no_form(self, client, news, detail_url):
-        response = client.get(detail_url)
+    def test_anonymous_client_has_no_form(self, client, news):
+        url = reverse('news:detail', args=(news.id,))
+        response = client.get(url)
         assert 'form' not in response.context
 
-    def test_authorized_client_has_form(self, author_client, news, detail_url):
-        response = author_client.get(detail_url)
+    def test_authorized_client_has_form(self, author_client, news):
+        url = reverse('news:detail', args=(news.id,))
+        response = author_client.get(url)
         assert 'form' in response.context
         assert isinstance(response.context['form'], CommentForm)

@@ -52,4 +52,3 @@ class TestContent(BaseTestCase):
                 response = self.client.get(url)
                 self.assertIn('form', response.context)
                 self.assertIsInstance(response.context['form'], NoteForm)
-
