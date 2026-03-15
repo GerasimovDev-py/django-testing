@@ -14,7 +14,9 @@ class TestLogic:
         response = client.post(url, data=form_data)
         login_url = reverse('login')
         assert response.status_code == 302
-        assert response.url.startswith(login_url)
+        assert response.url.startswith(
+            login_url
+        )
         assert Comment.objects.count() == comments_before
 
     def test_authorized_user_can_send_comment(self, author_client, news, author):
