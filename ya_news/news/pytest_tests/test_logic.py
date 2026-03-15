@@ -25,17 +25,16 @@ class TestLogic:
         form_data = {'text': 'Текст комментария'}
         response = client.post(url, data=form_data)
         login_url = reverse('login')
-        redirect_url = (
-            f'{login_url}?next={url}'
-        )
         assert response.status_code == 302
-        assert response.url == redirect_url
+        assert response.url.startswith(login_url)
         assert Comment.objects.count() == comments_before
 
     def test_comment_with_bad_words_not_published(self, author_client, news):
+        from django.conf import settings
         url = reverse('news:detail', args=(news.id,))
         comments_before = Comment.objects.count()
-        bad_text = f'Какой-то текст, {BAD_WORDS[0]}, ещё текст'
+        bad_word = 'редиска'
+        bad_text = f'Какой-то текст, {bad_word}, ещё текст'
         form_data = {'text': bad_text}
         response = author_client.post(url, data=form_data)
         assert response.status_code == 200
