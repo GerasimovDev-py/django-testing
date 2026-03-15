@@ -8,8 +8,7 @@ from notes.models import Note
 User = get_user_model()
 
 
-class TestContent(TestCase):
-
+class BaseTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.author = User.objects.create(username='Автор')
@@ -20,40 +19,37 @@ class TestContent(TestCase):
             slug='note-slug',
             author=cls.author
         )
-        # Создаем заметку для другого пользователя
-        cls.other_note = Note.objects.create(
-            title='Другая заметка',
-            text='Текст другой заметки',
-            slug='other-note',
-            author=cls.reader
-        )
+        cls.notes_list_url = reverse('notes:list')
+        cls.notes_add_url = reverse('notes:add')
+        cls.notes_success_url = reverse('notes:success')
+        cls.notes_detail_url = reverse('notes:detail', args=(cls.note.slug,))
+        cls.notes_edit_url = reverse('notes:edit', args=(cls.note.slug,))
+        cls.notes_delete_url = reverse('notes:delete', args=(cls.note.slug,))
+
+
+class TestContent(BaseTestCase):
 
     def test_note_in_object_list_for_author(self):
-        """Отдельная заметка передаётся на страницу со списком заметок."""
         self.client.force_login(self.author)
-        url = reverse('notes:list')
-        response = self.client.get(url)
+        response = self.client.get(self.notes_list_url)
         object_list = response.context['object_list']
         self.assertIn(self.note, object_list)
 
     def test_other_user_notes_not_in_list(self):
-        """В список заметок одного пользователя не попадают заметки другого."""
         self.client.force_login(self.author)
-        url = reverse('notes:list')
-        response = self.client.get(url)
+        response = self.client.get(self.notes_list_url)
         object_list = response.context['object_list']
-        self.assertNotIn(self.other_note, object_list)
+        self.assertNotIn(self.note, object_list)
 
     def test_pages_contains_form(self):
-        """На страницы создания и редактирования заметки передаются формы."""
         self.client.force_login(self.author)
         urls = (
-            ('notes:add', None),
-            ('notes:edit', (self.note.slug,)),
+            self.notes_add_url,
+            self.notes_edit_url,
         )
-        for name, args in urls:
-            with self.subTest(name=name):
-                url = reverse(name, args=args)
+        for url in urls:
+            with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertIn('form', response.context)
                 self.assertIsInstance(response.context['form'], NoteForm)
+

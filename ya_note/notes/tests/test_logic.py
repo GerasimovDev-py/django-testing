@@ -27,7 +27,6 @@ class TestLogic(TestCase):
         }
 
     def test_anonymous_user_cant_create_note(self):
-        """Анонимный пользователь не может создать заметку."""
         url = reverse('notes:add')
         response = self.client.post(url, data=self.form_data)
         login_url = reverse('users:login')
@@ -36,7 +35,6 @@ class TestLogic(TestCase):
         self.assertEqual(Note.objects.count(), 1)
 
     def test_user_can_create_note(self):
-        """Залогиненный пользователь может создать заметку."""
         self.client.force_login(self.author)
         url = reverse('notes:add')
         response = self.client.post(url, data=self.form_data)
@@ -48,19 +46,15 @@ class TestLogic(TestCase):
         self.assertEqual(new_note.author, self.author)
 
     def test_cannot_create_two_notes_with_same_slug(self):
-        """Невозможно создать две заметки с одинаковым slug."""
         self.form_data['slug'] = self.note.slug
         self.client.force_login(self.author)
         url = reverse('notes:add')
         response = self.client.post(url, data=self.form_data)
         form = response.context['form']
-        self.assertFormError(
-            form, 'slug', self.note.slug + WARNING
-        )
+        self.assertFormError(form, 'slug', self.note.slug + WARNING)
         self.assertEqual(Note.objects.count(), 1)
 
     def test_empty_slug_auto_generated(self):
-        """Если slug не заполнен, он формируется автоматически."""
         self.form_data.pop('slug')
         self.client.force_login(self.author)
         url = reverse('notes:add')
@@ -72,18 +66,16 @@ class TestLogic(TestCase):
         self.assertEqual(new_note.slug, expected_slug)
 
     def test_author_can_edit_note(self):
-        """Пользователь может редактировать свои заметки."""
         self.client.force_login(self.author)
         url = reverse('notes:edit', args=(self.note.slug,))
         response = self.client.post(url, data=self.form_data)
         self.assertRedirects(response, reverse('notes:success'))
-        self.note.refresh_from_db()
-        self.assertEqual(self.note.title, self.form_data['title'])
-        self.assertEqual(self.note.text, self.form_data['text'])
-        self.assertEqual(self.note.slug, self.form_data['slug'])
+        updated_note = Note.objects.get(id=self.note.id)
+        self.assertEqual(updated_note.title, self.form_data['title'])
+        self.assertEqual(updated_note.text, self.form_data['text'])
+        self.assertEqual(updated_note.slug, self.form_data['slug'])
 
     def test_author_can_delete_note(self):
-        """Пользователь может удалять свои заметки."""
         self.client.force_login(self.author)
         url = reverse('notes:delete', args=(self.note.slug,))
         response = self.client.post(url)
@@ -91,20 +83,23 @@ class TestLogic(TestCase):
         self.assertEqual(Note.objects.count(), 0)
 
     def test_user_cant_edit_other_note(self):
-        """Пользователь не может редактировать чужие заметки."""
         self.client.force_login(self.reader)
         url = reverse('notes:edit', args=(self.note.slug,))
         response = self.client.post(url, data=self.form_data)
         self.assertEqual(response.status_code, 404)
-        self.note.refresh_from_db()
-        self.assertEqual(self.note.title, 'Заголовок')
-        self.assertEqual(self.note.text, 'Текст')
-        self.assertEqual(self.note.slug, 'note-slug')
+        unchanged_note = Note.objects.get(id=self.note.id)
+        self.assertEqual(unchanged_note.title, 'Заголовок')
+        self.assertEqual(unchanged_note.text, 'Текст')
+        self.assertEqual(unchanged_note.slug, 'note-slug')
+        self.assertEqual(unchanged_note.author, self.author)
 
     def test_user_cant_delete_other_note(self):
-        """Пользователь не может удалять чужие заметки."""
         self.client.force_login(self.reader)
         url = reverse('notes:delete', args=(self.note.slug,))
         response = self.client.post(url)
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(Note.objects.count(), 1)
+        existing_note = Note.objects.get(id=self.note.id)
+        self.assertEqual(existing_note.title, 'Заголовок')
+        self.assertEqual(existing_note.text, 'Текст')
+        self.assertEqual(existing_note.slug, 'note-slug')
+        self.assertEqual(existing_note.author, self.author)
