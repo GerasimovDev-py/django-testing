@@ -26,7 +26,8 @@ class TestLogic:
         response = author_client.post(url, data=form_data)
         assert response.status_code == 302
         assert response.url == url
-        assert Comment.objects.count() == comments_before + 1
+        comments_after = Comment.objects.count()
+        assert comments_after == comments_before + 1
         new_comment = Comment.objects.latest('id')
         assert new_comment.text == form_data['text']
         assert new_comment.news == news
