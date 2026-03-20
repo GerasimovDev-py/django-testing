@@ -38,13 +38,19 @@ class TestLogic:
     def test_comment_with_bad_words_not_published(self, author_client, news):
         url = reverse('news:detail', args=(news.id,))
         comments_before = Comment.objects.count()
-        bad_word = BAD_WORDS[0]
+        bad_word = 'редиска'
         bad_text = f'Какой-то текст, {bad_word}, ещё текст'
         form_data = {'text': bad_text}
         response = author_client.post(url, data=form_data)
         assert response.status_code == 200
         assert 'form' in response.context
-        assert response.context['form'].errors
+        form = response.context['form']
+        assert form.errors
+        assert any(
+            'запрещённое слово' in str(error).lower()
+            or 'запрещенное' in str(error).lower()
+            for error in form.errors.get('text', [])
+        )
         assert Comment.objects.count() == comments_before
 
     def test_author_can_edit_comment(self, author_client, comment, news):
