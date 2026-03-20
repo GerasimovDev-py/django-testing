@@ -2,8 +2,6 @@ import pytest
 from django.urls import reverse
 
 from news.models import Comment
-from news.forms import BAD_WORDS
-
 
 @pytest.mark.django_db
 class TestLogic:
