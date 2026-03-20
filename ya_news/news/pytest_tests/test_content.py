@@ -8,14 +8,16 @@ from news.forms import CommentForm
 @pytest.mark.django_db
 class TestContent:
 
-    def test_news_count(self, client, bulk_news, home_url):
-        response = client.get(home_url)
+    def test_news_count(self, client, bulk_news):
+        url = reverse('news:home')
+        response = client.get(url)
         object_list = response.context['object_list']
         news_count = object_list.count()
         assert news_count == settings.NEWS_COUNT_ON_HOME_PAGE
 
-    def test_news_order(self, client, bulk_news, home_url):
-        response = client.get(home_url)
+    def test_news_order(self, client, bulk_news):
+        url = reverse('news:home')
+        response = client.get(url)
         object_list = response.context['object_list']
         all_dates = [news.date for news in object_list]
         sorted_dates = sorted(all_dates, reverse=True)
