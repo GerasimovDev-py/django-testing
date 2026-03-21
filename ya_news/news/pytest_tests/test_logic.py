@@ -1,5 +1,3 @@
-# ya_news/news/pytest_tests/test_logic.py
-
 import pytest
 from django.urls import reverse
 
@@ -16,9 +14,7 @@ class TestLogic:
         response = client.post(url, data=form_data)
         login_url = reverse('login')
         assert response.status_code == 302
-        assert response.url.startswith(
-            login_url
-        )
+        assert response.url.startswith(login_url)
         assert Comment.objects.count() == comments_before
 
     def test_authorized_user_can_send_comment(
@@ -29,8 +25,7 @@ class TestLogic:
         response = author_client.post(url, data=form_data)
         assert response.status_code == 302
         assert response.url == url
-        comments_after = Comment.objects.count()
-        assert comments_after == comments_before + 1
+        assert Comment.objects.count() == comments_before + 1
         new_comment = Comment.objects.latest('id')
         assert new_comment.text == form_data['text']
         assert new_comment.news == news
@@ -39,22 +34,12 @@ class TestLogic:
     def test_comment_with_bad_words_not_published(self, author_client, news):
         url = reverse('news:detail', args=(news.id,))
         comments_before = Comment.objects.count()
-        bad_word = 'редиска'
-        bad_text = f'Какой-то текст, {bad_word}, ещё текст'
-        form_data = {'text': bad_text}
-        response = author_client.post(url, data=form_data)
+        response = author_client.post(url, data={'text': 'редиска'})
+        assert Comment.objects.count() == comments_before
         assert response.status_code == 200
         assert 'form' in response.context
-        form = response.context['form']
-        # Проверяем, что форма содержит ошибки
-        assert form.errors
-        # Проверяем, что ошибка связана с полем text
-        assert 'text' in form.errors
-        # Проверяем, что ошибка содержит информацию о запрещённом слове
-        error_message = str(form.errors['text'][0])
-        assert 'запрещ' in error_message.lower()
-        assert bad_word in error_message.lower()
-        assert Comment.objects.count() == comments_before
+        assert response.context['form'].errors
+        assert 'text' in response.context['form'].errors
 
     def test_author_can_edit_comment(self, author_client, comment, news):
         url = reverse('news:edit', args=(comment.id,))

@@ -1,7 +1,6 @@
 from django import forms
 from .models import Comment
 
-# Список запрещенных слов
 BAD_WORDS = ['редиска', 'негодяй', 'подлец']
 
 
@@ -15,6 +14,6 @@ class CommentForm(forms.ModelForm):
         for word in BAD_WORDS:
             if word in text.lower():
                 raise forms.ValidationError(
-                    f'Обнаружено запрещенное слово: {word}'
+                    f'Обнаружено запрещённое слово: {word}'
                 )
         return text
