@@ -3,6 +3,7 @@ from django.urls import reverse
 
 from news.models import Comment
 
+
 @pytest.mark.django_db
 class TestLogic:
 
