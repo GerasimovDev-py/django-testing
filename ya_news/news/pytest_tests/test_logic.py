@@ -1,3 +1,5 @@
+# ya_news/news/pytest_tests/test_logic.py
+
 import pytest
 from django.urls import reverse
 
@@ -44,12 +46,14 @@ class TestLogic:
         assert response.status_code == 200
         assert 'form' in response.context
         form = response.context['form']
+        # Проверяем, что форма содержит ошибки
         assert form.errors
-        assert any(
-            'запрещённое слово' in str(error).lower()
-            or 'запрещенное' in str(error).lower()
-            for error in form.errors.get('text', [])
-        )
+        # Проверяем, что ошибка связана с полем text
+        assert 'text' in form.errors
+        # Проверяем, что ошибка содержит информацию о запрещённом слове
+        error_message = str(form.errors['text'][0])
+        assert 'запрещ' in error_message.lower()
+        assert bad_word in error_message.lower()
         assert Comment.objects.count() == comments_before
 
     def test_author_can_edit_comment(self, author_client, comment, news):
