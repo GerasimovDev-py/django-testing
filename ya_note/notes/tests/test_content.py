@@ -19,6 +19,12 @@ class BaseTestCase(TestCase):
             slug='note-slug',
             author=cls.author
         )
+        cls.other_note = Note.objects.create(
+            title='Другая заметка',
+            text='Текст другой заметки',
+            slug='other-note',
+            author=cls.reader
+        )
         cls.notes_list_url = reverse('notes:list')
         cls.notes_add_url = reverse('notes:add')
         cls.notes_success_url = reverse('notes:success')
@@ -39,7 +45,7 @@ class TestContent(BaseTestCase):
         self.client.force_login(self.author)
         response = self.client.get(self.notes_list_url)
         object_list = response.context['object_list']
-        self.assertNotIn(self.note, object_list)
+        self.assertNotIn(self.other_note, object_list)
 
     def test_pages_contains_form(self):
         self.client.force_login(self.author)

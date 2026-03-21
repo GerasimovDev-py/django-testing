@@ -39,7 +39,8 @@ class NewsDetail(DetailView):
             comment.save()
             return redirect('news:detail', pk=self.object.pk)
 
-        context = self.get_context_data(object=self.object, form=form)
+        context = self.get_context_data()
+        context['form'] = form
         return self.render_to_response(context)
 
 
