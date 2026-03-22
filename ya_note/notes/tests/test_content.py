@@ -1,5 +1,5 @@
 from notes.forms import NoteForm
-from .base import BaseTestCase, NOTES_LIST_URL, NOTES_ADD_URL
+from notes.tests.base import NOTES_ADD_URL, NOTES_LIST_URL, BaseTestCase
 
 
 class TestContent(BaseTestCase):
@@ -10,10 +10,10 @@ class TestContent(BaseTestCase):
         self.assertIn(self.note, object_list)
 
     def test_other_user_notes_not_in_list(self):
-        response = self.author_client.get(NOTES_LIST_URL)
+        # Логика теста: читатель не должен видеть заметку автора
+        response = self.reader_client.get(NOTES_LIST_URL)
         object_list = response.context['object_list']
-        notes_ids = [note.id for note in object_list]
-        self.assertNotIn(self.note.id, notes_ids)
+        self.assertNotIn(self.note, object_list)
 
     def test_pages_contains_form(self):
         urls = (NOTES_ADD_URL, self.notes_edit_url)

@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from notes.models import Note
@@ -22,12 +22,12 @@ class BaseTestCase(TestCase):
             slug='note-slug',
             author=cls.author
         )
-        cls.notes_detail_url = reverse('news:detail', args=(cls.note.slug,))
+        cls.notes_detail_url = reverse('notes:detail', args=(cls.note.slug,))
         cls.notes_edit_url = reverse('notes:edit', args=(cls.note.slug,))
         cls.notes_delete_url = reverse('notes:delete', args=(cls.note.slug,))
 
-        cls.author_client = cls.client
+        cls.author_client = Client()
         cls.author_client.force_login(cls.author)
 
-        cls.reader_client = cls.client
+        cls.reader_client = Client()
         cls.reader_client.force_login(cls.reader)

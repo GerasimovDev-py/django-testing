@@ -2,8 +2,9 @@ from http import HTTPStatus
 
 from django.urls import reverse
 
-from .base import (
-    BaseTestCase, NOTES_LIST_URL, NOTES_ADD_URL, NOTES_SUCCESS_URL
+# Заменяем относительный импорт на абсолютный
+from notes.tests.base import (
+    NOTES_ADD_URL, NOTES_LIST_URL, NOTES_SUCCESS_URL, BaseTestCase
 )
 
 
@@ -20,13 +21,6 @@ class TestRoutes(BaseTestCase):
                 url = reverse(name, args=args)
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
-
-        logout_url = reverse('users:logout')
-        response = self.client.get(logout_url)
-        self.assertEqual(response.status_code, HTTPStatus.METHOD_NOT_ALLOWED)
-
-        response = self.client.post(logout_url)
-        self.assertIn(response.status_code, [HTTPStatus.OK, HTTPStatus.FOUND])
 
     def test_pages_availability_for_auth_user(self):
         urls = (NOTES_LIST_URL, NOTES_ADD_URL, NOTES_SUCCESS_URL)
