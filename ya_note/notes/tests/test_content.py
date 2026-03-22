@@ -1,5 +1,5 @@
 from notes.forms import NoteForm
-from .base import BaseTestCase, NOTES_LIST_URL, NOTES_ADD_URL, NOTES_EDIT_URL
+from .base import BaseTestCase, NOTES_LIST_URL, NOTES_ADD_URL
 
 
 class TestContent(BaseTestCase):
@@ -21,4 +21,6 @@ class TestContent(BaseTestCase):
             with self.subTest(url=url):
                 response = self.author_client.get(url)
                 self.assertIn('form', response.context)
-                self.assertIsInstance(response.context['form'], NoteForm)  
+                self.assertIsInstance(
+                    response.context['form'], NoteForm
+                )

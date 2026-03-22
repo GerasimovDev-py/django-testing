@@ -1,3 +1,5 @@
+# ya_news/news/pytest_tests/test_logic.py
+
 import pytest
 from django.urls import reverse
 
@@ -20,7 +22,8 @@ def test_anonymous_user_cant_send_comment(client, detail_url):
     assert Comment.objects.count() == comments_before
 
 
-def test_authorized_user_can_send_comment(author_client, news, author, detail_url):
+def test_authorized_user_can_send_comment(
+        author_client, news, author, detail_url):
     comments_before = Comment.objects.count()
     response = author_client.post(detail_url, data=FORM_DATA)
     assert response.status_code == 302
@@ -42,11 +45,14 @@ def test_comment_with_bad_words_not_published(author_client, detail_url):
     assert response.context['form'].errors
 
 
-def test_author_can_edit_comment(author_client, comment, news, edit_url):
+def test_author_can_edit_comment(
+        author_client, comment, news, edit_url):
     comments_before = Comment.objects.count()
     response = author_client.post(edit_url, data=EDIT_DATA)
     assert response.status_code == 302
-    assert response.url == reverse('news:detail', args=(news.id,))
+    assert response.url == reverse(
+        'news:detail', args=(news.id,)
+    )
     assert Comment.objects.count() == comments_before
 
     updated_comment = Comment.objects.get(id=comment.id)
@@ -59,7 +65,9 @@ def test_author_can_delete_comment(author_client, comment, news, delete_url):
     comments_before = Comment.objects.count()
     response = author_client.post(delete_url)
     assert response.status_code == 302
-    assert response.url == reverse('news:detail', args=(news.id,))
+    assert response.url == reverse(
+        'news:detail', args=(news.id,)
+    )
     assert Comment.objects.count() == comments_before - 1
 
 

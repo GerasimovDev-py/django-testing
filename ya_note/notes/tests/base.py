@@ -22,7 +22,7 @@ class BaseTestCase(TestCase):
             slug='note-slug',
             author=cls.author
         )
-        cls.notes_detail_url = reverse('notes:detail', args=(cls.note.slug,))
+        cls.notes_detail_url = reverse('news:detail', args=(cls.note.slug,))
         cls.notes_edit_url = reverse('notes:edit', args=(cls.note.slug,))
         cls.notes_delete_url = reverse('notes:delete', args=(cls.note.slug,))
 

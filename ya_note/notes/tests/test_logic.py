@@ -1,3 +1,5 @@
+from django.urls import reverse
+
 from notes.models import Note
 from notes.forms import WARNING
 from .base import BaseTestCase, NOTES_ADD_URL, NOTES_SUCCESS_URL
