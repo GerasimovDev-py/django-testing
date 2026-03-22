@@ -1,117 +1,92 @@
+import pytest
 from django.urls import reverse
 
-from notes.models import Note
-from notes.forms import WARNING
-from .base import BaseTestCase, NOTES_ADD_URL, NOTES_SUCCESS_URL
+from news.models import Comment
+
+pytestmark = pytest.mark.django_db
+
+FORM_DATA = {'text': 'Текст комментария'}
+BAD_WORD_DATA = {'text': 'редиска'}
+EDIT_DATA = {'text': 'Обновлённый текст комментария'}
+OTHER_DATA = {'text': 'Попытка изменить чужой комментарий'}
 
 
-class TestLogic(BaseTestCase):
+def test_anonymous_user_cant_send_comment(client, detail_url):
+    comments_before = Comment.objects.count()
+    response = client.post(detail_url, data=FORM_DATA)
+    login_url = reverse('login')
+    assert response.status_code == 302
+    assert response.url.startswith(login_url)
+    assert Comment.objects.count() == comments_before
 
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.form_data = {
-            'title': 'Новая заметка',
-            'text': 'Текст новой заметки',
-            'slug': 'new-note'
-        }
-        cls.original_note_data = {
-            'title': cls.note.title,
-            'text': cls.note.text,
-            'slug': cls.note.slug,
-            'author': cls.note.author
-        }
 
-    def test_anonymous_user_cant_create_note(self):
-        response = self.client.post(NOTES_ADD_URL, data=self.form_data)
-        login_url = reverse('users:login')
-        redirect_url = f'{login_url}?next={NOTES_ADD_URL}'
-        self.assertRedirects(response, redirect_url)
-        self.assertEqual(Note.objects.count(), 1)
+def test_authorized_user_can_send_comment(
+        author_client, news, author, detail_url):
+    comments_before = Comment.objects.count()
+    response = author_client.post(detail_url, data=FORM_DATA)
+    assert response.status_code == 302
+    assert response.url == detail_url
+    assert Comment.objects.count() == comments_before + 1
 
-    def test_user_can_create_note(self):
-        notes_before = set(Note.objects.all())
-        response = self.author_client.post(NOTES_ADD_URL, data=self.form_data)
-        self.assertRedirects(response, NOTES_SUCCESS_URL)
-        notes_after = set(Note.objects.all())
-        new_notes = notes_after - notes_before
-        self.assertEqual(len(new_notes), 1)
-        new_note = new_notes.pop()
-        self.assertEqual(new_note.title, self.form_data['title'])
-        self.assertEqual(new_note.text, self.form_data['text'])
-        self.assertEqual(new_note.author, self.author)
+    comment = Comment.objects.get()
+    assert comment.text == FORM_DATA['text']
+    assert comment.news == news
+    assert comment.author == author
 
-    def test_cannot_create_two_notes_with_same_slug(self):
-        self.form_data['slug'] = self.note.slug
-        response = self.author_client.post(NOTES_ADD_URL, data=self.form_data)
-        form = response.context['form']
-        self.assertFormError(form, 'slug', self.note.slug + WARNING)
-        self.assertEqual(Note.objects.count(), 1)
 
-    def test_empty_slug_auto_generated(self):
-        self.form_data.pop('slug')
-        response = self.author_client.post(NOTES_ADD_URL, data=self.form_data)
-        self.assertRedirects(response, NOTES_SUCCESS_URL)
-        new_note = Note.objects.exclude(id=self.note.id).get()
-        expected_slug = 'novaya-zametka'
-        self.assertEqual(new_note.slug, expected_slug)
+def test_comment_with_bad_words_not_published(author_client, detail_url):
+    comments_before = Comment.objects.count()
+    response = author_client.post(detail_url, data=BAD_WORD_DATA)
+    assert Comment.objects.count() == comments_before
+    assert response.status_code == 200
+    assert 'form' in response.context
+    assert response.context['form'].errors
 
-    def test_author_can_edit_note(self):
-        notes_before = set(Note.objects.all())
-        response = self.author_client.post(
-            self.notes_edit_url, data=self.form_data
-        )
-        self.assertRedirects(response, NOTES_SUCCESS_URL)
-        notes_after = set(Note.objects.all())
-        self.assertEqual(notes_before, notes_after)
-        updated_note = Note.objects.get(id=self.note.id)
-        self.assertEqual(updated_note.title, self.form_data['title'])
-        self.assertEqual(updated_note.text, self.form_data['text'])
-        self.assertEqual(updated_note.slug, self.form_data['slug'])
 
-    def test_author_can_delete_note(self):
-        response = self.author_client.post(self.notes_delete_url)
-        self.assertRedirects(response, NOTES_SUCCESS_URL)
-        self.assertEqual(Note.objects.count(), 0)
+def test_author_can_edit_comment(
+        author_client, comment, news, edit_url):
+    comments_before = Comment.objects.count()
+    response = author_client.post(edit_url, data=EDIT_DATA)
+    assert response.status_code == 302
+    detail = reverse('news:detail', args=(news.id,))
+    assert response.url == detail
+    assert Comment.objects.count() == comments_before
 
-    def test_user_cant_edit_other_note(self):
-        notes_before = set(Note.objects.all())
-        response = self.reader_client.post(
-            self.notes_edit_url, data=self.form_data
-        )
-        self.assertEqual(response.status_code, 404)
-        notes_after = set(Note.objects.all())
-        self.assertEqual(notes_before, notes_after)
-        unchanged_note = Note.objects.get(id=self.note.id)
-        self.assertEqual(
-            unchanged_note.title, self.original_note_data['title']
-        )
-        self.assertEqual(
-            unchanged_note.text, self.original_note_data['text']
-        )
-        self.assertEqual(
-            unchanged_note.slug, self.original_note_data['slug']
-        )
-        self.assertEqual(
-            unchanged_note.author, self.original_note_data['author']
-        )
+    updated_comment = Comment.objects.get(id=comment.id)
+    assert updated_comment.text == EDIT_DATA['text']
+    assert updated_comment.news == news
+    assert updated_comment.author == comment.author
 
-    def test_user_cant_delete_other_note(self):
-        notes_before = set(Note.objects.all())
-        response = self.reader_client.post(self.notes_delete_url)
-        self.assertEqual(response.status_code, 404)
-        notes_after = set(Note.objects.all())
-        self.assertEqual(notes_before, notes_after)
-        existing_note = Note.objects.get(id=self.note.id)
-        self.assertEqual(
-            existing_note.title, self.original_note_data['title']
-        )
-        self.assertEqual(
-            existing_note.text, self.original_note_data['text']
-        )
-        self.assertEqual(
-            existing_note.slug, self.original_note_data['slug']
-        )
-        self.assertEqual(
-            existing_note.author, self.original_note_data['author']
-        )
+
+def test_author_can_delete_comment(author_client, comment, news, delete_url):
+    comments_before = Comment.objects.count()
+    response = author_client.post(delete_url)
+    assert response.status_code == 302
+    detail = reverse('news:detail', args=(news.id,))
+    assert response.url == detail
+    assert Comment.objects.count() == comments_before - 1
+
+
+def test_user_cant_edit_other_comment(not_author_client, comment, edit_url):
+    comments_before = Comment.objects.count()
+    original_text = comment.text
+    response = not_author_client.post(edit_url, data=OTHER_DATA)
+    assert response.status_code == 403
+    assert Comment.objects.count() == comments_before
+
+    unchanged_comment = Comment.objects.get(id=comment.id)
+    assert unchanged_comment.text == original_text
+    assert unchanged_comment.news == comment.news
+    assert unchanged_comment.author == comment.author
+
+
+def test_user_cant_delete_other_comment(not_author_client, comment, delete_url):
+    comments_before = Comment.objects.count()
+    response = not_author_client.post(delete_url)
+    assert response.status_code == 403
+    assert Comment.objects.count() == comments_before
+
+    unchanged_comment = Comment.objects.get(id=comment.id)
+    assert unchanged_comment.text == comment.text
+    assert unchanged_comment.news == comment.news
+    assert unchanged_comment.author == comment.author

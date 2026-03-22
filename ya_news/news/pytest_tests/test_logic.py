@@ -1,5 +1,3 @@
-# ya_news/news/pytest_tests/test_logic.py
-
 import pytest
 from django.urls import reverse
 
@@ -50,9 +48,8 @@ def test_author_can_edit_comment(
     comments_before = Comment.objects.count()
     response = author_client.post(edit_url, data=EDIT_DATA)
     assert response.status_code == 302
-    assert response.url == reverse(
-        'news:detail', args=(news.id,)
-    )
+    detail = reverse('news:detail', args=(news.id,))
+    assert response.url == detail
     assert Comment.objects.count() == comments_before
 
     updated_comment = Comment.objects.get(id=comment.id)
@@ -65,9 +62,8 @@ def test_author_can_delete_comment(author_client, comment, news, delete_url):
     comments_before = Comment.objects.count()
     response = author_client.post(delete_url)
     assert response.status_code == 302
-    assert response.url == reverse(
-        'news:detail', args=(news.id,)
-    )
+    detail = reverse('news:detail', args=(news.id,))
+    assert response.url == detail
     assert Comment.objects.count() == comments_before - 1
 
 
