@@ -1,5 +1,3 @@
-# ya_news/news/pytest_tests/test_content.py
-
 import pytest
 from django.conf import settings
 
@@ -33,12 +31,12 @@ def test_comments_order(client, news, comment_with_different_dates, detail_url):
     assert all_timestamps == sorted_timestamps
 
 
-def test_anonymous_client_has_no_form(client, news, detail_url):
+def test_anonymous_client_has_no_form(client, detail_url):
     response = client.get(detail_url)
     assert 'form' not in response.context
 
 
-def test_authorized_client_has_form(author_client, news, detail_url):
+def test_authorized_client_has_form(author_client, detail_url):
     response = author_client.get(detail_url)
     assert 'form' in response.context
     assert isinstance(response.context['form'], CommentForm)

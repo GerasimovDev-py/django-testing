@@ -1,5 +1,3 @@
-from django.urls import reverse
-
 from notes.models import Note
 from notes.forms import WARNING
 from .base import BaseTestCase, NOTES_ADD_URL, NOTES_SUCCESS_URL
@@ -23,10 +21,9 @@ class TestLogic(BaseTestCase):
         }
 
     def test_anonymous_user_cant_create_note(self):
-        url = NOTES_ADD_URL
-        response = self.client.post(url, data=self.form_data)
+        response = self.client.post(NOTES_ADD_URL, data=self.form_data)
         login_url = reverse('users:login')
-        redirect_url = f'{login_url}?next={url}'
+        redirect_url = f'{login_url}?next={NOTES_ADD_URL}'
         self.assertRedirects(response, redirect_url)
         self.assertEqual(Note.objects.count(), 1)
 
@@ -84,10 +81,18 @@ class TestLogic(BaseTestCase):
         notes_after = set(Note.objects.all())
         self.assertEqual(notes_before, notes_after)
         unchanged_note = Note.objects.get(id=self.note.id)
-        self.assertEqual(unchanged_note.title, self.original_note_data['title'])
-        self.assertEqual(unchanged_note.text, self.original_note_data['text'])
-        self.assertEqual(unchanged_note.slug, self.original_note_data['slug'])
-        self.assertEqual(unchanged_note.author, self.original_note_data['author'])
+        self.assertEqual(
+            unchanged_note.title, self.original_note_data['title']
+        )
+        self.assertEqual(
+            unchanged_note.text, self.original_note_data['text']
+        )
+        self.assertEqual(
+            unchanged_note.slug, self.original_note_data['slug']
+        )
+        self.assertEqual(
+            unchanged_note.author, self.original_note_data['author']
+        )
 
     def test_user_cant_delete_other_note(self):
         notes_before = set(Note.objects.all())
@@ -96,7 +101,15 @@ class TestLogic(BaseTestCase):
         notes_after = set(Note.objects.all())
         self.assertEqual(notes_before, notes_after)
         existing_note = Note.objects.get(id=self.note.id)
-        self.assertEqual(existing_note.title, self.original_note_data['title'])
-        self.assertEqual(existing_note.text, self.original_note_data['text'])
-        self.assertEqual(existing_note.slug, self.original_note_data['slug'])
-        self.assertEqual(existing_note.author, self.original_note_data['author'])
+        self.assertEqual(
+            existing_note.title, self.original_note_data['title']
+        )
+        self.assertEqual(
+            existing_note.text, self.original_note_data['text']
+        )
+        self.assertEqual(
+            existing_note.slug, self.original_note_data['slug']
+        )
+        self.assertEqual(
+            existing_note.author, self.original_note_data['author']
+        )

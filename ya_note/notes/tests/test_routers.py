@@ -24,14 +24,12 @@ class TestRoutes(BaseTestCase):
         self.assertEqual(response.status_code, HTTPStatus.METHOD_NOT_ALLOWED)
 
         response = self.client.post(logout_url)
-        self.assertIn(response.status_code, [HTTPStatus.OK, HTTPStatus.FOUND])
+        self.assertIn(
+            response.status_code, [HTTPStatus.OK, HTTPStatus.FOUND]
+        )
 
     def test_pages_availability_for_auth_user(self):
-        urls = (
-            NOTES_LIST_URL,
-            NOTES_ADD_URL,
-            NOTES_SUCCESS_URL,
-        )
+        urls = (NOTES_LIST_URL, NOTES_ADD_URL, NOTES_SUCCESS_URL)
         for url in urls:
             with self.subTest(url=url):
                 response = self.author_client.get(url)

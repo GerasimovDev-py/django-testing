@@ -11,7 +11,7 @@ EDIT_DATA = {'text': 'Обновлённый текст комментария'}
 OTHER_DATA = {'text': 'Попытка изменить чужой комментарий'}
 
 
-def test_anonymous_user_cant_send_comment(client, news, detail_url):
+def test_anonymous_user_cant_send_comment(client, detail_url):
     comments_before = Comment.objects.count()
     response = client.post(detail_url, data=FORM_DATA)
     login_url = reverse('login')
@@ -33,7 +33,7 @@ def test_authorized_user_can_send_comment(author_client, news, author, detail_ur
     assert comment.author == author
 
 
-def test_comment_with_bad_words_not_published(author_client, news, detail_url):
+def test_comment_with_bad_words_not_published(author_client, detail_url):
     comments_before = Comment.objects.count()
     response = author_client.post(detail_url, data=BAD_WORD_DATA)
     assert Comment.objects.count() == comments_before
