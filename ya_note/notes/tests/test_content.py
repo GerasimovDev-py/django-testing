@@ -10,7 +10,6 @@ class TestContent(BaseTestCase):
         self.assertIn(self.note, object_list)
 
     def test_other_user_notes_not_in_list(self):
-        # Логика теста: читатель не должен видеть заметку автора
         response = self.reader_client.get(NOTES_LIST_URL)
         object_list = response.context['object_list']
         self.assertNotIn(self.note, object_list)

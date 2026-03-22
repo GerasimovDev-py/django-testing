@@ -2,7 +2,6 @@ from http import HTTPStatus
 
 from django.urls import reverse
 
-# Заменяем относительный импорт на абсолютный
 from notes.tests.base import (
     NOTES_ADD_URL, NOTES_LIST_URL, NOTES_SUCCESS_URL, BaseTestCase
 )
