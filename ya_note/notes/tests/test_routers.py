@@ -21,15 +21,10 @@ class TestRoutes(BaseTestCase):
 
         logout_url = reverse('users:logout')
         response = self.client.get(logout_url)
-        self.assertEqual(
-            response.status_code, HTTPStatus.METHOD_NOT_ALLOWED
-        )
+        self.assertEqual(response.status_code, HTTPStatus.METHOD_NOT_ALLOWED)
 
         response = self.client.post(logout_url)
-        self.assertIn(
-            response.status_code,
-            [HTTPStatus.OK, HTTPStatus.FOUND]
-        )
+        self.assertIn(response.status_code, [HTTPStatus.OK, HTTPStatus.FOUND])
 
     def test_pages_availability_for_auth_user(self):
         urls = (NOTES_LIST_URL, NOTES_ADD_URL, NOTES_SUCCESS_URL)
@@ -58,9 +53,7 @@ class TestRoutes(BaseTestCase):
         for url in urls:
             with self.subTest(url=url):
                 response = self.reader_client.get(url)
-                self.assertEqual(
-                    response.status_code, HTTPStatus.NOT_FOUND
-                )
+                self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_redirect_for_anonymous_client(self):
         login_url = reverse('users:login')
