@@ -2,7 +2,9 @@ from http import HTTPStatus
 
 from django.urls import reverse
 
-from .base import BaseTestCase, NOTES_LIST_URL, NOTES_ADD_URL, NOTES_SUCCESS_URL
+from .base import (
+    BaseTestCase, NOTES_LIST_URL, NOTES_ADD_URL, NOTES_SUCCESS_URL
+)
 
 
 class TestRoutes(BaseTestCase):

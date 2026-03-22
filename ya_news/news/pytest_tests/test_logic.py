@@ -66,7 +66,8 @@ def test_author_can_delete_comment(author_client, comment, news, delete_url):
     assert Comment.objects.count() == comments_before - 1
 
 
-def test_user_cant_edit_other_comment(not_author_client, comment, edit_url):
+def test_user_cant_edit_other_comment(
+        not_author_client, comment, edit_url):
     comments_before = Comment.objects.count()
     original_text = comment.text
     response = not_author_client.post(edit_url, data=OTHER_DATA)
@@ -79,7 +80,8 @@ def test_user_cant_edit_other_comment(not_author_client, comment, edit_url):
     assert unchanged_comment.author == comment.author
 
 
-def test_user_cant_delete_other_comment(not_author_client, comment, delete_url):
+def test_user_cant_delete_other_comment(
+        not_author_client, comment, delete_url):
     comments_before = Comment.objects.count()
     response = not_author_client.post(delete_url)
     assert response.status_code == 403
