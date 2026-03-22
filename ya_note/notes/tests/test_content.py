@@ -1,60 +1,27 @@
-from django.contrib.auth import get_user_model
-from django.test import TestCase
 from django.urls import reverse
 
 from notes.forms import NoteForm
 from notes.models import Note
-
-User = get_user_model()
-
-
-class BaseTestCase(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.author = User.objects.create(username='Автор')
-        cls.reader = User.objects.create(username='Читатель')
-        cls.note = Note.objects.create(
-            title='Заголовок',
-            text='Текст',
-            slug='note-slug',
-            author=cls.author
-        )
-        cls.other_note = Note.objects.create(
-            title='Другая заметка',
-            text='Текст другой заметки',
-            slug='other-note',
-            author=cls.reader
-        )
-        cls.notes_list_url = reverse('notes:list')
-        cls.notes_add_url = reverse('notes:add')
-        cls.notes_success_url = reverse('notes:success')
-        cls.notes_detail_url = reverse('notes:detail', args=(cls.note.slug,))
-        cls.notes_edit_url = reverse('notes:edit', args=(cls.note.slug,))
-        cls.notes_delete_url = reverse('notes:delete', args=(cls.note.slug,))
+from .base import BaseTestCase, NOTES_LIST_URL, NOTES_ADD_URL, NOTES_EDIT_URL
 
 
 class TestContent(BaseTestCase):
 
     def test_note_in_object_list_for_author(self):
-        self.client.force_login(self.author)
-        response = self.client.get(self.notes_list_url)
+        response = self.author_client.get(NOTES_LIST_URL)
         object_list = response.context['object_list']
         self.assertIn(self.note, object_list)
 
     def test_other_user_notes_not_in_list(self):
-        self.client.force_login(self.author)
-        response = self.client.get(self.notes_list_url)
+        response = self.author_client.get(NOTES_LIST_URL)
         object_list = response.context['object_list']
-        self.assertNotIn(self.other_note, object_list)
+        notes_ids = [note.id for note in object_list]
+        self.assertNotIn(self.note.id, notes_ids)
 
     def test_pages_contains_form(self):
-        self.client.force_login(self.author)
-        urls = (
-            self.notes_add_url,
-            self.notes_edit_url,
-        )
+        urls = (NOTES_ADD_URL, self.notes_edit_url)
         for url in urls:
             with self.subTest(url=url):
-                response = self.client.get(url)
+                response = self.author_client.get(url)
                 self.assertIn('form', response.context)
                 self.assertIsInstance(response.context['form'], NoteForm)
