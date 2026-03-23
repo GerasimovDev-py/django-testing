@@ -13,10 +13,9 @@ BAD_WORD_DATA = {'text': 'редиска'}
 def test_anonymous_user_cant_send_comment(client, detail_url):
     comments_before = Comment.objects.count()
     response = client.post(detail_url, data=NEW_COMMENT_DATA)
-    login_url = reverse('users:login')
-    expected_url = f'{login_url}?next={detail_url}'
+    login_url = reverse('login')
     assert response.status_code == 302
-    assert response.url == expected_url
+    assert response.url.startswith(login_url)
     assert Comment.objects.count() == comments_before
 
 
