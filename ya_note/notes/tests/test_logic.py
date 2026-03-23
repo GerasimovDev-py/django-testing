@@ -4,6 +4,7 @@ from notes.tests.base import (
     NOTES_ADD_URL, NOTES_SUCCESS_URL, LOGIN_URL, BaseTestCase
 )
 
+
 class TestLogic(BaseTestCase):
 
     @classmethod
@@ -80,7 +81,7 @@ class TestLogic(BaseTestCase):
         response = self.reader_client.post(self.notes_delete_url)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(Note.objects.count(), 1)
-        
+
         unchanged_note = Note.objects.get(id=self.note.id)
         self.assertEqual(unchanged_note.title, self.note.title)
         self.assertEqual(unchanged_note.text, self.note.text)
