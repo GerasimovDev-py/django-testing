@@ -1,9 +1,8 @@
-from django.urls import reverse
-
 from notes.forms import WARNING
 from notes.models import Note
-from notes.tests.base import NOTES_ADD_URL, NOTES_SUCCESS_URL, BaseTestCase
-
+from notes.tests.base import (
+    NOTES_ADD_URL, NOTES_SUCCESS_URL, LOGIN_URL, BaseTestCase
+)
 
 class TestLogic(BaseTestCase):
 
@@ -15,17 +14,10 @@ class TestLogic(BaseTestCase):
             'text': 'Текст новой заметки',
             'slug': 'new-note'
         }
-        cls.original_note_data = {
-            'title': cls.note.title,
-            'text': cls.note.text,
-            'slug': cls.note.slug,
-            'author': cls.note.author
-        }
 
     def test_anonymous_user_cant_create_note(self):
         response = self.client.post(NOTES_ADD_URL, data=self.form_data)
-        login_url = reverse('users:login')
-        redirect_url = f'{login_url}?next={NOTES_ADD_URL}'
+        redirect_url = f'{LOGIN_URL}?next={NOTES_ADD_URL}'
         self.assertRedirects(response, redirect_url)
         self.assertEqual(Note.objects.count(), 1)
 
@@ -55,8 +47,7 @@ class TestLogic(BaseTestCase):
         response = self.author_client.post(NOTES_ADD_URL, data=self.form_data)
         self.assertRedirects(response, NOTES_SUCCESS_URL)
         new_note = Note.objects.exclude(id=self.note.id).get()
-        expected_slug = 'novaya-zametka'
-        self.assertEqual(new_note.slug, expected_slug)
+        self.assertEqual(new_note.slug, 'novaya-zametka')
 
     def test_author_can_edit_note(self):
         response = self.author_client.post(
@@ -81,17 +72,16 @@ class TestLogic(BaseTestCase):
         )
         self.assertEqual(response.status_code, 404)
         unchanged_note = Note.objects.get(id=self.note.id)
-        self.assertEqual(
-            unchanged_note.title, self.original_note_data['title']
-        )
-        self.assertEqual(
-            unchanged_note.text, self.original_note_data['text']
-        )
-        self.assertEqual(
-            unchanged_note.slug, self.original_note_data['slug']
-        )
+        self.assertEqual(unchanged_note.title, self.note.title)
+        self.assertEqual(unchanged_note.text, self.note.text)
+        self.assertEqual(unchanged_note.slug, self.note.slug)
 
     def test_user_cant_delete_other_note(self):
         response = self.reader_client.post(self.notes_delete_url)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(Note.objects.count(), 1)
+        
+        unchanged_note = Note.objects.get(id=self.note.id)
+        self.assertEqual(unchanged_note.title, self.note.title)
+        self.assertEqual(unchanged_note.text, self.note.text)
+        self.assertEqual(unchanged_note.slug, self.note.slug)
