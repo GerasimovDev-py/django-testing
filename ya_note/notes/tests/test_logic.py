@@ -1,7 +1,8 @@
 from notes.forms import WARNING
 from notes.models import Note
 from notes.tests.base import (
-    NOTES_ADD_URL, NOTES_SUCCESS_URL, LOGIN_URL, BaseTestCase
+    NOTES_ADD_URL, NOTES_SUCCESS_URL, LOGIN_URL,
+    NOTES_EDIT_URL, NOTES_DELETE_URL, BaseTestCase
 )
 
 
@@ -47,12 +48,13 @@ class TestLogic(BaseTestCase):
         self.form_data.pop('slug')
         response = self.author_client.post(NOTES_ADD_URL, data=self.form_data)
         self.assertRedirects(response, NOTES_SUCCESS_URL)
+        self.assertEqual(Note.objects.count(), 2)
         new_note = Note.objects.exclude(id=self.note.id).get()
         self.assertEqual(new_note.slug, 'novaya-zametka')
 
     def test_author_can_edit_note(self):
         response = self.author_client.post(
-            self.notes_edit_url,
+            NOTES_EDIT_URL,
             data=self.form_data
         )
         self.assertRedirects(response, NOTES_SUCCESS_URL)
@@ -62,13 +64,13 @@ class TestLogic(BaseTestCase):
         self.assertEqual(updated_note.slug, self.form_data['slug'])
 
     def test_author_can_delete_note(self):
-        response = self.author_client.post(self.notes_delete_url)
+        response = self.author_client.post(NOTES_DELETE_URL)
         self.assertRedirects(response, NOTES_SUCCESS_URL)
         self.assertEqual(Note.objects.count(), 0)
 
     def test_user_cant_edit_other_note(self):
         response = self.reader_client.post(
-            self.notes_edit_url,
+            NOTES_EDIT_URL,
             data=self.form_data
         )
         self.assertEqual(response.status_code, 404)
@@ -78,7 +80,7 @@ class TestLogic(BaseTestCase):
         self.assertEqual(unchanged_note.slug, self.note.slug)
 
     def test_user_cant_delete_other_note(self):
-        response = self.reader_client.post(self.notes_delete_url)
+        response = self.reader_client.post(NOTES_DELETE_URL)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(Note.objects.count(), 1)
 
